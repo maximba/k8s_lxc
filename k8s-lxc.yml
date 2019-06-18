@@ -162,6 +162,11 @@
       shell: helm init --service-account=tiller
       tags:
         - skip_ansible_lint
+        
+    - name: Enable Dashboard Token 
+      shell: kubectl create clusterrolebinding kubernetes-dashboard -n kube-system --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
+      tags:
+        - skip_ansible_lint
 
 - hosts: localhost
   connection: local
@@ -187,7 +192,7 @@
   tasks:
     - name: Join worker nodes to the Kubernetes cluster
       shell: |
-        sshpass -p "kubeadmin" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@k8s-master.lxd:/joincluster.sh /joincluster.sh 2>/tmp/joincluster.log
+        sshpass -p "ubuntu" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@k8s-master.lxd:/joincluster.sh /joincluster.sh 2>/tmp/joincluster.log
         bash /joincluster.sh >> /tmp/joincluster.log  || true
       tags:
       - skip_ansible_lint

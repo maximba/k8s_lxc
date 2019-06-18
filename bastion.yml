@@ -28,16 +28,7 @@
               - x11-apps
               - mesa-utils
               - pulseaudio
-        description: GUI LXD profile
         devices:
-          PASocket:
-            path: /tmp/.pulse-native
-            source: /run/user/1000/pulse/native
-            type: disk
-          X0:
-            path: /tmp/.X11-unix/X0
-            source: /tmp/.X11-unix/X0
-            type: disk
           mygpu:
             type: gpu
         source:
@@ -50,10 +41,10 @@
         wait_for_ipv4_addresses: true
         timeout: 600
       with_items: # launch LXD instance 
-        - ubuntu
+        - bastion
 
     - name: Install Firefox and its dependecies
-      delegate_to: "ubuntu"
+      delegate_to: "bastion"
       apt: 
         name: "{{ packages }}"
         state: present
@@ -64,3 +55,28 @@
         - libcanberra-gtk3-module
         - dbus-x11
         - firefox
+
+    - name: Set authorized keys taken for me
+      delegate_to: "bastion"
+      authorized_key:
+        user: ubuntu
+        state: present
+        key: https://github.com/maximba.keys
+
+    - name: Copy k8s admin.conf to localhost
+      delegate_to: "localhost"
+      shell: lxc file pull k8s-master/etc/kubernetes/admin.conf /tmp/config
+      tags:
+        - skip_ansible_lint
+
+    - name: Copy k8s admin.conf to bastion
+      delegate_to: "bastion"
+      copy:
+        src: /tmp/config
+        dest: /home/ubuntu/.kube/
+        
+    - name: Got token to kubeconfig
+      delegate_to: "bastion"
+      shell: kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}') | grep "^token:" | cut -d ":" -f2 | xargs -L1 echo > /home/ubuntu/.kube/token
+      
+      
