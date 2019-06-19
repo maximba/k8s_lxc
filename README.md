@@ -12,9 +12,8 @@ In this tutorial, I’ll walk through the installation of LXD, LVM and Bridge-Ut
 
 Table of contents
 --
-- [Managing LXC with Ansible](https://github.com/maximba/k8s_lxc/wiki/Managing-LXC-with-Ansible)
 - [Setup k8s on LXD/LXC](https://github.com/maximba/k8s_lxc/wiki/Kubernetes-on-Linux-containers)
-- [Run K8S-Dashboard](https://github.com/maximba/k8s_lxc/wiki/Running-K8S-dashboard)
+- [Run k8s-Dashboard](https://github.com/maximba/k8s_lxc/wiki/Running-K8S-dashboard)
 
 &nbsp;
 
