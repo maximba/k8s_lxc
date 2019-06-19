@@ -1,18 +1,5 @@
-[all:vars]
-ansible_python_interpreter=/usr/bin/python3
-
-[containers:vars]
-ansible_connection=lxd
-
-[masters:vars]
-numcpu=2
-
-[nodes:vars]
-numcpu=1
-
 [local]
-localhost ansible_connection=local 
-bastion ansible_connection=lxd
+localhost 
 
 [masters]
 k8s-master
@@ -21,6 +8,13 @@ k8s-master
 k8s-node-1 
 k8s-node-2 
 
-[containers:children]
+[k8s_lxc:children]
 masters
 nodes
+
+[helpers_lxc]
+bastion
+
+[lxc:children]
+k8s_lxc
+helpers_lxc

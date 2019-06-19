@@ -43,6 +43,8 @@
       with_items: # launch LXD instance 
         - bastion
 
+- hosts: bastion
+  tasks:
     - name: Install Firefox and its dependecies
       delegate_to: "bastion"
       apt: 

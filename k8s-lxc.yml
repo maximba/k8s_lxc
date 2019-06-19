@@ -2,7 +2,7 @@
   connection: local
   tasks:
     - name: Creating LXD containers
-      loop: "{{ groups['containers'] }}"
+      loop: "{{ groups['k8s_lxc'] }}"
       lxd_container:
         name: "{{ item }}"
         state: started
@@ -24,7 +24,7 @@
         wait_for_ipv4_addresses: true
         timeout: 600
 
-- hosts: containers
+- hosts: k8s_lxc
   gather_facts: yes
   become: true
   tasks:
@@ -66,7 +66,7 @@
           - sshpass
           - less
           - docker.io
-          
+
     - name: Enable and start services docker
       systemd:
         name: docker
@@ -101,51 +101,72 @@
         state: started
         enabled: yes
 
-- hosts: masters
+- hosts: k8s_lxc
   gather_facts: yes
   become: true
   tasks:
+    - name: Add ubuntu user to sudoers with NOPASSWD flag
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^%sudo'
+        line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
+        
+    - name: Group docker added to user ubuntu
+      become_user: root
+      user:
+        user: ubuntu
+        groups: docker
+        append: yes
+      
+- hosts: masters
+  gather_facts: yes
+  become_user: ubuntu
+  become: true
+  tasks:
     - name: Initializing the Kubernetes cluster
-      shell: kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=Swap,FileContent--proc-sys-net-bridge-bridge-nf-call-iptables,SystemVerification >> /root/kubeinit.log
+      shell: sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=Swap,FileContent--proc-sys-net-bridge-bridge-nf-call-iptables,SystemVerification >> ~/kubeinit.log
       tags:
         - skip_ansible_lint
 
-    - name: Create /root/.kube directory if not exists
+    - name: Create ~/.kube directory if not exists
       file:
-        path: /root/.kube
+        path: ~/.kube
         state: directory
 
-    - name: Copy Kube admin config to root home directory
+    - name: Copy Kube admin config to home directory
+      become_user: root
       copy:
         src: /etc/kubernetes/admin.conf
-        dest: /root/.kube/config
+        dest: /home/ubuntu/.kube/config
         remote_src: yes
-
+         
     - name: Deploy flannel network
       shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
       tags:
         - skip_ansible_lint
 
     - name: Generate Cluster join command
-      shell: joinCommand=$(kubeadm token create --print-join-command) && echo "$joinCommand --ignore-preflight-errors=Swap,FileContent--proc-sys-net-bridge-bridge-nf-call-iptables,SystemVerification" > /joincluster.sh
+      shell: joinCommand=$(kubeadm token create --print-join-command) && echo "$joinCommand --ignore-preflight-errors=Swap,FileContent--proc-sys-net-bridge-bridge-nf-call-iptables,SystemVerification,isPrivilegedUser" > ~/joincluster.sh
       tags:
         - skip_ansible_lint
 
     - name: Get Helm manifest
       get_url:
         url: https://raw.githubusercontent.com/helm/helm/master/scripts/get
-        dest: ./get.helm.sh
+        dest: ~/./get.helm.sh
       tags:
         - skip_ansible_lint
 
     - name: Install Helm
-      shell: bash ./get.helm.sh
+      shell: bash ~/./get.helm.sh
       tags:
         - skip_ansible_lint
 
     - name: Remove Helm manifest
       file:
-        path: ./get.helm.sh
+        path: ~/./get.helm.sh
         state: absent
 
     - name: Create Helm ServiceAccount
@@ -162,14 +183,23 @@
       shell: helm init --service-account=tiller
       tags:
         - skip_ansible_lint
-        
-    - name: Enable Dashboard Token 
+
+    - name: Enable Dashboard Token
       shell: kubectl create clusterrolebinding kubernetes-dashboard -n kube-system --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
       tags:
         - skip_ansible_lint
 
+- hosts: nodes
+  gather_facts: yes
+  become_user: ubuntu
+  become: true
+  tasks:
+    - name: Join worker nodes to the Kubernetes cluster
+      shell: |
+        sshpass -p {{ hostvars[groups['lxc'].0]['ubuntu_password'] }} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@k8s-master.lxd:~/joincluster.sh ~/joincluster.sh 2>/tmp/joincluster.log
+        sudo bash ~/joincluster.sh >> /tmp/joincluster.log 
+
 - hosts: localhost
-  connection: local
   tasks:
     - name: Copy k8s admin.conf to ~/.kube/config
       shell: lxc file pull k8s-master/etc/kubernetes/admin.conf ~/.kube/config
@@ -186,13 +216,3 @@
       tags:
       - skip_ansible_lint
 
-- hosts: nodes
-  gather_facts: yes
-  become: true
-  tasks:
-    - name: Join worker nodes to the Kubernetes cluster
-      shell: |
-        sshpass -p "ubuntu" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@k8s-master.lxd:/joincluster.sh /joincluster.sh 2>/tmp/joincluster.log
-        bash /joincluster.sh >> /tmp/joincluster.log  || true
-      tags:
-      - skip_ansible_lint
