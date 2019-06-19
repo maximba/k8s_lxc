@@ -19,7 +19,7 @@ Table of contents
 - [LXD Profile](https://github.com/maximba/k8s_lxc/wiki/Installing-and-configuring-LXD#profile)
 - [Getting started](https://github.com/maximba/k8s_lxc/wiki/Installing-and-configuring-LXD#getting-started)
 - [Managing LXC with Ansible](https://github.com/maximba/k8s_lxc/wiki/Managing-LXC-with-Ansible)
-- [Run K8S-Dashboard] (https://github.com/maximba/k8s_lxc/wiki/Running-K8S-dashboard)
+- [Run K8S-Dashboard](https://github.com/maximba/k8s_lxc/wiki/Running-K8S-dashboard)
 - [Setup k8s on LXD/LXC](https://github.com/maximba/k8s_lxc/wiki/Kubernetes-on-Linux-containers)
 - [LXD/LXC Cheat Sheet](https://github.com/maximba/k8s_lxc/wiki/LXC-and-LXD-Cheat-Sheet)
 
