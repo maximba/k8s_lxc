@@ -1,4 +1,5 @@
 - hosts: localhost
+
   connection: local
   tasks:
     - name: Creating LXD container
@@ -20,14 +21,9 @@
           environment.DISPLAY: :0
           raw.idmap: both 1000 1000
           user.user-data: |
-            #cloud-config
-            runcmd:
-              - 'sed -i "s/; enable-shm = yes/enable-shm = no/g" /etc/pulse/client.conf'
-              - 'echo export PULSE_SERVER=unix:/tmp/.pulse-native | tee --append /home/ubuntu/.profile'
             packages:
               - x11-apps
               - mesa-utils
-              - pulseaudio
         devices:
           mygpu:
             type: gpu
@@ -43,10 +39,33 @@
       with_items: # launch LXD instance 
         - bastion
 
+
+- hosts: localhost
+  tasks:
+    - name: Copy k8s admin.conf to localhost
+      shell: lxc file pull k8s-master/etc/kubernetes/admin.conf /tmp/config
+      tags:
+        - skip_ansible_lint
+
+    - name: Create ~/.kube directory if not exists
+      become_user: ubuntu
+      become: true
+      delegate_to: bastion
+      file:
+        path: ~/.kube
+        state: directory
+
+    - name: Copy k8s admin.conf to bastion
+      shell: lxc file push /tmp/config bastion/home/ubuntu/.kube/config      
+      tags:
+        - skip_ansible_lint
+
 - hosts: bastion
+  become: yes
+  become_user: ubuntu
   tasks:
     - name: Install Firefox and its dependecies
-      delegate_to: "bastion"
+      become_user: root
       apt: 
         name: "{{ packages }}"
         state: present
@@ -58,27 +77,26 @@
         - dbus-x11
         - firefox
 
-    - name: Set authorized keys taken for me
-      delegate_to: "bastion"
+    - name: Install kubectl
+      become_user: root
+      shell: snap install kubectl --classic
+
+    - name: Set authorized keys taken from github
       authorized_key:
         user: ubuntu
         state: present
         key: https://github.com/maximba.keys
 
-    - name: Copy k8s admin.conf to localhost
-      delegate_to: "localhost"
-      shell: lxc file pull k8s-master/etc/kubernetes/admin.conf /tmp/config
-      tags:
-        - skip_ansible_lint
-
-    - name: Copy k8s admin.conf to bastion
-      delegate_to: "bastion"
-      copy:
-        src: /tmp/config
-        dest: /home/ubuntu/.kube/
-        
     - name: Got token to kubeconfig
-      delegate_to: "bastion"
       shell: kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}') | grep "^token:" | cut -d ":" -f2 | xargs -L1 echo > /home/ubuntu/.kube/token
       
+    - name: Add Token to config to enable Dashboard
+      shell: 'grep -q "token:" /home/ubuntu/.kube/config  || echo "    token: $(cat /home/ubuntu/.kube/token)" >> /home/ubuntu/.kube/config'
       
+    - name: Create kubeconfig symlink 
+      file:
+        src: ~/.kube/config
+        dest: ~/kubeconfig
+        owner: ubuntu
+        group: ubuntu
+        state: link      

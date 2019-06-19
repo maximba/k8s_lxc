@@ -17,9 +17,9 @@
         source:
           type: image
           mode: pull
-          server: https://images.linuxcontainers.org
+          server: https://cloud-images.ubuntu.com/releases
           protocol: simplestreams
-          alias: ubuntu/bionic/amd64
+          alias: bionic/amd64
         profiles: ["default"]
         wait_for_ipv4_addresses: true
         timeout: 600
@@ -44,14 +44,29 @@
     - name: Set password to user Ubuntu
       user:
         name: ubuntu
-        password: "$1$3Zdze7Vx$P2I3YFbwyDX/doWZRcrd80"
+        password: "{{ hostvars[groups['lxc'].0]['ubuntu_password_hash'] }}" 
         update_password: always
       no_log: true
 
-    - name: Install Docker and additional Packages
+    - name: Enable ssh password auth 
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        state: present
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication yes'
+
+    - name: Reload sshd server
+      systemd:
+        name: sshd
+        state: reloaded
+        
+    - name: Update Apt Cache
+      apt:
+        update_cache: yes
+
+    - name: Install Additional Packages
       apt:
         name: "{{ packages }}"
-        update_cache: yes
         state: present
       vars:
         packages:
@@ -60,13 +75,16 @@
           - thin-provisioning-tools
           - lvm2
           - software-properties-common
-          - openssh-server
           - net-tools
           - sudo
           - sshpass
           - less
-          - docker.io
-
+        
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present        
+        
     - name: Enable and start services docker
       systemd:
         name: docker
@@ -88,6 +106,7 @@
       apt:
         name: "{{ kubernetes }}"
         update_cache: yes
+        cache_valid_time: 3600
         state: present
       vars:
         kubernetes:
@@ -197,8 +216,10 @@
     - name: Join worker nodes to the Kubernetes cluster
       shell: |
         sshpass -p {{ hostvars[groups['lxc'].0]['ubuntu_password'] }} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@k8s-master.lxd:~/joincluster.sh ~/joincluster.sh 2>/tmp/joincluster.log
-        sudo bash ~/joincluster.sh >> /tmp/joincluster.log 
-
+        sudo bash /home/ubuntu/joincluster.sh >> /tmp/joincluster.log 
+  tags:
+    - join_cluster
+    
 - hosts: localhost
   tasks:
     - name: Copy k8s admin.conf to ~/.kube/config
@@ -209,10 +230,10 @@
     - name: Deploy Kubernetes Dashboard
       shell: kubectl apply -f dashboard.yml
       tags:
-      - skip_ansible_lint
+        - skip_ansible_lint
 
     - name: Grant full admin privileges to Dashboard Service Account
       shell: kubectl apply -f authentication.yml
       tags:
-      - skip_ansible_lint
+        - skip_ansible_lint
 
