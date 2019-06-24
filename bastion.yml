@@ -24,16 +24,13 @@
             packages:
               - x11-apps
               - mesa-utils
-        devices:
-          mygpu:
-            type: gpu
         source:
           type: image
           mode: pull
           server: https://cloud-images.ubuntu.com/releases
           protocol: simplestreams
           alias: 19.04/amd64
-        profiles: ["dualnic"]
+        profiles: ["default"]
         wait_for_ipv4_addresses: true
         timeout: 600
       with_items: # launch LXD instance 
