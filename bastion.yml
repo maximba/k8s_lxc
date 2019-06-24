@@ -98,7 +98,20 @@
         group: ubuntu
         state: link      
 
-    - name: Launch kubectl proxy
-      shell: (pkill kubectl || true ) && kubectl proxy --address '0.0.0.0' &
+    - name: Kill kubectl proxy
+      shell: pkill kubectl || true 
+      tags:
+        - kubectl_proxy
+      
+    - name: Start Kubctl proxy
+      shell: "nohup kubectl proxy --address '0.0.0.0' &"
       tags:
         - kubectl_proxy      
+
+    
+    - name: Install helm
+      become_user: root
+      shell: snap install helm --classic
+      tags:
+        - install_helm
+    
