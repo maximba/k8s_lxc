@@ -33,7 +33,7 @@
           server: https://cloud-images.ubuntu.com/releases
           protocol: simplestreams
           alias: 19.04/amd64
-        profiles: ["default"]
+        profiles: ["dualnic"]
         wait_for_ipv4_addresses: true
         timeout: 600
       with_items: # launch LXD instance 
