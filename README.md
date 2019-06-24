@@ -1,19 +1,46 @@
 # Kubernetes on LXC
+## Steps:
 
-**L**inu**X** **C**ontainers (LXC) is an operating system-level virtualization method for running multiple isolated Linux systems (containers) on a single control host (LXC host).
+**0.-** Create k8s infrastructure. You just need have setup LXC to use LVM with enough free space ant then create the infrastructure with:
+```
+$> ansible-playbook k8s-lxc.yml
+```
+The result should be:
 
-LXD is the newer, better way to interface with LXC. LXD provides a system-wide daemon, a new LXC command-line client. The daemon exports a REST API, which makes the entire LXD experience very powerful and extremely simple to use.
+![k8s cluster](https://github.com/maximba/k8s_lxc/blob/master/images/shot4.png)
 
-In this tutorial, I’ll walk through the installation of LXD, LVM and Bridge-Utils on Ubuntu 18.04 and show you how to provision, deploy, and configure containers remotely.
+**1.-** Create bastion lxc using bastion.yml:
+```
+$> ansible-playbook bastion.yml
+```
+**2.-** Add proxy setup in ~/.ssh/config
+```
+...
+ Host bastion
+	User ubuntu
+	HostName 10.38.14.110
+	ForwardX11 yes
+	ProxyCommand ssh karis nc %h %p
+...
 
-**Note** This Repository is a Fork from https://github.com/sayems/lxc.resources adapted to use LVM instead of ZFS and Ubuntu based nodes more than Centos image based. Also provided a bastion machine to be used as ssh-proxy to use K8S Dashboard using kubectl proxy.
+```
+**3.-** ssh to bastion and launch:
+```
+$> kubectl proxy &
+$> firefox &
+```
 
-&nbsp;
+**4.-** Open location at firefox:
+[http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/](http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/)
 
-Table of contents
---
-- [Setup k8s on LXD/LXC](https://github.com/maximba/k8s_lxc/wiki/Kubernetes-on-Linux-containers)
-- [Run k8s-Dashboard](https://github.com/maximba/k8s_lxc/wiki/Running-K8S-dashboard)
+![Auth Page](https://github.com/maximba/k8s_lxc/blob/master/images/shot1.png)
+
+For authentication use kubeconfig file at ubuntu home directory
+![kubeconfig](https://github.com/maximba/k8s_lxc/blob/master/images/shot2.png)
+
+**5.-** Dashboard should look as:
+![Dashboard](https://github.com/maximba/k8s_lxc/blob/master/images/shot3.png)
+
 
 &nbsp;
 
