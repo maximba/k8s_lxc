@@ -10,8 +10,8 @@
           limits.cpu: "{{ hostvars[item].numcpu }}"
           limits.memory: 8GB
           limits.memory.swap: "false"
-          linux.kernel_modules: ip_tables,ip6_tables,netlink_diag,nf_nat,overlay
-          raw.lxc: "lxc.apparmor.profile=unconfined\nlxc.cap.drop= \nlxc.cgroup.devices.allow=a\nlxc.mount.auto=proc:rw sys:rw"
+          linux.kernel_modules: ip_tables,ip6_tables,netlink_diag,nf_nat,overlay,br_netfilter,bridge
+          raw.lxc: "lxc.apparmor.profile=unconfined\nlxc.cap.drop= \nlxc.cgroup.devices.allow=a\nlxc.mount.auto=proc:rw sys:rw cgroup:rw"
           security.nesting: "true"
           security.privileged: "true"
         source:
@@ -44,11 +44,13 @@
     - name: Set password to user Ubuntu
       user:
         name: ubuntu
-        password: "{{ hostvars[groups['lxc'].0]['ubuntu_password_hash'] }}" 
+        password: "{{ ubuntu_password_hash }}"
         update_password: always
       no_log: true
+      tags:
+        - change_password
 
-    - name: Enable ssh password auth 
+    - name: Enable ssh password auth
       lineinfile:
         path: /etc/ssh/sshd_config
         state: present
@@ -59,10 +61,15 @@
       systemd:
         name: sshd
         state: reloaded
-        
-    - name: Update Apt Cache
+
+    - name: Update and upgrade apt packages
+      become: true
       apt:
+        upgrade: yes
         update_cache: yes
+        cache_valid_time: 86400 #One day
+      tags:
+        - k8s_update
 
     - name: Install Additional Packages
       apt:
@@ -79,24 +86,24 @@
           - sudo
           - sshpass
           - less
-        
+
     - name: Install Docker
       apt:
         name: docker.io
-        state: present        
-        
+        state: present
+
     - name: Enable and start services docker
       systemd:
         name: docker
         state: started
         enabled: yes
 
-    - name: Add Kubernetes Repository Key
+    - name: Add Kubernetes APT GPG Key
       apt_key:
         url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
         state: present
 
-    - name: Add Kubernetes Repository
+    - name: Add Kubernetes APT Repository
       apt_repository:
         repo: 'deb http://apt.kubernetes.io/ kubernetes-xenial main'
         state: present
@@ -108,22 +115,22 @@
         update_cache: yes
         cache_valid_time: 3600
         state: present
+        force: yes
       vars:
         kubernetes:
-          - kubeadm
-          - kubelet
-          - kubectl
+          - kubeadm={{ k8s_version }}
+          - kubelet={{ k8s_version }}
+          - kubectl={{ k8s_version }}
 
+    - name: Modify cgroup-driver to systemd for Kubelet
+      shell: echo "KUBELET_CGROUP_ARGS=--cgroup-driver=systemd" > /etc/default/kubelet
+      
     - name: Enable and start Kubelet service
       systemd:
         name: kubelet
-        state: started
+        state: restarted
         enabled: yes
 
-- hosts: k8s_lxc
-  gather_facts: yes
-  become: true
-  tasks:
     - name: Add ubuntu user to sudoers with NOPASSWD flag
       lineinfile:
         path: /etc/sudoers
@@ -131,23 +138,30 @@
         regexp: '^%sudo'
         line: '%sudo ALL=(ALL) NOPASSWD: ALL'
         validate: 'visudo -cf %s'
-        
+
     - name: Group docker added to user ubuntu
-      become_user: root
       user:
         user: ubuntu
         groups: docker
         append: yes
-      
+
+
 - hosts: masters
   gather_facts: yes
   become_user: ubuntu
   become: true
   tasks:
-    - name: Initializing the Kubernetes cluster
-      shell: sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=Swap,FileContent--proc-sys-net-bridge-bridge-nf-call-iptables,SystemVerification >> ~/kubeinit.log
+    - name: Pulling Kubernetes Images
+      shell: sudo kubeadm config images pull --kubernetes-version {{ k8s_version.split("-")[0] }}
       tags:
         - skip_ansible_lint
+        - master_setup
+
+    - name: Initializing the Kubernetes cluster
+      shell: sudo kubeadm init --pod-network-cidr=10.244.0.0/16 {{ kubeadm_args }} > ~/kubeinit.log
+      tags:
+        - skip_ansible_lint
+        - master_setup
 
     - name: Create ~/.kube directory if not exists
       file:
@@ -155,19 +169,22 @@
         state: directory
 
     - name: Copy Kube admin config to home directory
+      become: true
       become_user: root
       copy:
         src: /etc/kubernetes/admin.conf
         dest: /home/ubuntu/.kube/config
         remote_src: yes
-         
+
     - name: Deploy flannel network
       shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
       tags:
         - skip_ansible_lint
 
     - name: Generate Cluster join command
-      shell: joinCommand=$(kubeadm token create --print-join-command) && echo "$joinCommand --ignore-preflight-errors=Swap,FileContent--proc-sys-net-bridge-bridge-nf-call-iptables,SystemVerification,isPrivilegedUser" > ~/joincluster.sh
+      shell: |
+        joinCommand=$(kubeadm token create --print-join-command)  
+        echo "$joinCommand {{ kubeadm_args }}" > ~/joincluster.sh
       tags:
         - skip_ansible_lint
 
@@ -215,11 +232,12 @@
   tasks:
     - name: Join worker nodes to the Kubernetes cluster
       shell: |
-        sshpass -p {{ hostvars[groups['lxc'].0]['ubuntu_password'] }} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@k8s-master.lxd:~/joincluster.sh ~/joincluster.sh 2>/tmp/joincluster.log
-        sudo bash /home/ubuntu/joincluster.sh >> /tmp/joincluster.log 
-  tags:
-    - join_cluster
-    
+        sshpass -p {{ ubuntu_password }} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ubuntu@k8s-master.lxd:~/joincluster.sh ~/joincluster.sh 2>/tmp/joincluster.log
+        sudo bash /home/ubuntu/joincluster.sh >> /tmp/joincluster.log
+      tags:
+        - skip_ansible_lint
+        - join_cluster
+
 - hosts: localhost
   tasks:
     - name: Copy k8s admin.conf to ~/.kube/config
@@ -236,4 +254,3 @@
       shell: kubectl apply -f authentication.yml
       tags:
         - skip_ansible_lint
-

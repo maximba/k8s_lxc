@@ -1,1 +1,2 @@
 ansible_python_interpreter: /usr/bin/python3
+traefik_binary_url: https://github.com/containous/traefik/releases/download/v1.7.12/traefik_linux-amd64
