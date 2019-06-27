@@ -57,13 +57,6 @@
       tags:
         - skip_ansible_lint
 
-- hosts: bastion
-  become: yes
-  roles:
-    - role: kibatic.traefik
-  tags:
-    - install_traefik
-
   tasks:
     - name: Install Firefox and its dependecies
       apt: 
@@ -125,5 +118,3 @@
       shell: snap install helm --classic
       tags:
         - install_helm
-        
-     
