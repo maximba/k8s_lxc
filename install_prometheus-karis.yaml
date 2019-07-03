@@ -1,0 +1,14 @@
+- hosts: localhost
+  tasks:
+    - name: Remove ConfigMap
+      raw: kubectl delete configmap prometheus-karis-cm || true
+      
+    - name: Install ConfigMap from prometheus.yml
+      raw: kubectl create configmap prometheus-karis-cm --from-file {{ prometheus_config_file }}
+
+    - name: Remove Prometheus
+      raw: kubectl delete -f {{ prometheus_karis_manifest_file }} || true
+     
+    - name: Install Prometheus 
+      raw: kubectl apply -f {{ prometheus_karis_manifest_file }}
+    
