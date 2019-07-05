@@ -1,0 +1,8 @@
+- hosts: localhost
+  tasks:
+    - name: Remove Jenkins Chart if exists
+      raw: helm delete --purge jenkins || true
+      
+    - name: Install Jenkins Chart based on values at {{ jenkins_config_file }} 
+      raw: helm install --name jenkins stable/jenkins --values  {{ jenkins_config_file }}
+    

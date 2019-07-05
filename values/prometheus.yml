@@ -1,19 +1,23 @@
-global:
-  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+server:      
+  ingress:
+    enabled: true
+    hosts: 
+      - karis.axesor.es/prometheus
 
-  # Attach these labels to any time series or alerts when communicating with
-  # external systems (federation, remote storage, Alertmanager).
-  external_labels:
-    monitor: 'codelab-monitor'
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      kubernetes.io/tls-acme: 'true'
+      nginx.ingress.kubernetes.io/rewrite-target: "/prometheus"
+    tls:
+      - secretName: axesorsecret-tls
+        hosts:
+          - karis.axesor.es
 
-# A scrape configuration containing exactly one endpoint to scrape:
-# Here it's Prometheus itself.
-scrape_configs:
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-  - job_name: 'prometheus'
+  prefixURL: /prometheus
+  persistentVolume:
+#    existingClaim: prometheus  
+    storageClass: local-storage
 
-    # Override the global default and scrape targets from this job every 5 seconds.
-    scrape_interval: 5s
-
-    static_configs:
-      - targets: ['localhost:9090']
+alertmanager:
+  enabled: false
+    

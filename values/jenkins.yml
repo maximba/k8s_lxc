@@ -11,18 +11,20 @@ master:
     cpu: "1"
     memory: "3500Mi"
   javaopts: "-Xms3500m -Xmx3500m"
+  jenkinsUriPrefix: "/jenkins"
   serviceType: ClusterIP
   ingress:
     hostName: "karis.axesor.es"
     enabled: true
     annotations:
       kubernetes.io/ingress.class: "nginx"
-      kubernetes.io/ingress.allow-http: "false"    
+      kubernetes.io/tls-acme: 'true'
+      nginx.ingress.kubernetes.io/rewrite-target: "/jenkins"
     tls:
       - secretName: axesorsecret-tls
         hosts:
           - karis.axesor.es
-          
+    path: /jenkins
   adminUser: admin
   adminPassword: secret
   

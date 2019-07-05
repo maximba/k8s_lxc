@@ -1,0 +1,8 @@
+- hosts: localhost
+  tasks:
+    - name: Remove Jenkins Chart if exists
+      raw: helm delete --purge prometheus || true
+      
+    - name: Install Jenkins Chart based on values at {{ prometheus_config_file }} 
+      raw: helm install --name prometheus stable/prometheus --values  {{ prometheus_config_file }}
+    

@@ -2,3 +2,4 @@
 .DS_Store
 *.log
 ansible_fact_caching.cache/
+*~
