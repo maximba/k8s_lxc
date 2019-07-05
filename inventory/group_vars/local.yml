@@ -1,1 +1,3 @@
 ansible_connection: local 
+prometheus_config_file: services/prometheus.yml
+prometheus_karis_manifest_file: services/prometheus-karis.yml

@@ -1,0 +1,39 @@
+master:
+  installPlugins:
+    - kubernetes:1.12.6
+    - workflow-job:2.24
+    - workflow-aggregator:2.5
+    - credentials-binding:1.16
+    - git:3.9.1
+    - google-oauth-plugin:0.6
+    - google-source-plugin:0.3
+  resources:
+    cpu: "1"
+    memory: "3500Mi"
+  javaopts: "-Xms3500m -Xmx3500m"
+  serviceType: ClusterIP
+  ingress:
+    hostName: "karis.axesor.es"
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      kubernetes.io/ingress.allow-http: "false"    
+    tls:
+      - secretName: axesorsecret-tls
+        hosts:
+          - karis.axesor.es
+          
+  adminUser: admin
+  adminPassword: secret
+  
+agent:
+  enabled: true
+persistence:
+  size: 100Gi
+  existingClaim: jenkins
+networkPolicy:
+  ApiVersion: networking.k8s.io/v1
+rbac:
+  create: true
+  serviceAccount:
+    name: cd-jenkins
