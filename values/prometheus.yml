@@ -1,22 +1,25 @@
 server:      
+  extraArgs: 
+    web.route-prefix: "/"
+    web.external-url: "/prometheus/"
   ingress:
     enabled: true
     hosts: 
-      - karis.axesor.es/prometheus
-
+      - karis.axesor.es/prometheus/?(.*)
     annotations:
       kubernetes.io/ingress.class: "nginx"
       kubernetes.io/tls-acme: 'true'
-      nginx.ingress.kubernetes.io/rewrite-target: "/prometheus"
+      nginx.ingress.kubernetes.io/rewrite-target: /$1
     tls:
       - secretName: axesorsecret-tls
         hosts:
           - karis.axesor.es
-
-  prefixURL: /prometheus
+      
   persistentVolume:
-#    existingClaim: prometheus  
-    storageClass: local-storage
+    storageClass: nfs-storage
+    accessModes: 
+      - ReadWriteMany
+    size: 8Gi
 
 alertmanager:
   enabled: false

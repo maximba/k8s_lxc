@@ -86,6 +86,7 @@
           - sudo
           - sshpass
           - less
+          - nfs-common
 
     - name: Install Docker
       apt:

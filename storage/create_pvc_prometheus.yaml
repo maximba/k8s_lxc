@@ -1,11 +1,11 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: prometheus
+  name: prometheus-pvc
 spec:
   accessModes:
-  - ReadWriteOnce
-  storageClassName: local-storage
+  - ReadWriteMany
+  storageClassName: nfs-storage
   resources:
     requests:
       storage: 20Gi

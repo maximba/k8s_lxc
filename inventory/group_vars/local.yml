@@ -1,5 +1,4 @@
 ansible_connection: local 
 prometheus_config_file: values/prometheus.yml
-prometheus_karis_manifest_file: services/prometheus-karis.yml
 jenkins_config_file: values/jenkins.yml
 
