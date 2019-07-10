@@ -247,11 +247,11 @@
         - skip_ansible_lint
 
     - name: Deploy Kubernetes Dashboard
-      shell: kubectl apply -f dashboard.yml
+      shell: kubectl apply -f deploy/dashboard.yml
       tags:
         - skip_ansible_lint
 
     - name: Grant full admin privileges to Dashboard Service Account
-      shell: kubectl apply -f authentication.yml
+      shell: kubectl apply -f deploy/authentication.yml
       tags:
         - skip_ansible_lint
