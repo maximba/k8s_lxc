@@ -1,4 +1,4 @@
 ansible_connection: local 
 prometheus_config_file: values/prometheus.yml
 jenkins_config_file: values/jenkins.yml
-
+grafana_config_file: values/grafana.yml

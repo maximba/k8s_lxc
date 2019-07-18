@@ -32,3 +32,16 @@ spec:
           values:
           - k8s-node-1
 
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: jenkins
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 100Gi
+      

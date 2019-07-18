@@ -16,11 +16,24 @@ server:
           - karis.axesor.es
       
   persistentVolume:
-    storageClass: nfs-storage
-    accessModes: 
-      - ReadWriteMany
-    size: 8Gi
+#    storageClass: prometheus-storage
+#    accessModes: 
+#      - ReadWriteMany
+#    size: 8Gi
+    existingClaim: nfs-pvc
+    subPath: "prometheus/server"
 
 alertmanager:
-  enabled: false
+  enabled: true
+  
+  persistentVolume:
+    existingClaim: nfs-pvc
+    subPath: "prometheus/alertmanager"
+    
+pushgateway:
+  enabled: true
+
+  persistentVolume:
+    existingClaim: nfs-pvc
+    subPath: "prometheus/pushgateway"
     

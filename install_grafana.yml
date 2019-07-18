@@ -1,0 +1,10 @@
+# Get password: kubectl get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+# FMaY4BOuljsdJa1Ruvy5jRUYNTgZtb2i1Tt5TOCY- hosts: localhost
+- hosts: localhost
+  tasks:
+    - name: Remove Grafana Chart if exists
+      raw: helm delete --purge grafana  || true 
+
+    - name: Install Grafana Chart based on values at {{ grafana_config_file }} 
+      raw: helm install --name grafana stable/grafana --values  {{ grafana_config_file }}
+    

@@ -1,0 +1,27 @@
+ingress:
+  enabled: true
+  hosts: 
+    - karis.axesor.es
+  path: /grafana/?(.*)
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/tls-acme: 'true'
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  tls:
+    - secretName: axesorsecret-tls
+      hosts:
+        - karis.axesor.es
+      
+persistence:
+  enabled: true
+#  storageClassName: grafana-storage
+#  accessModes: 
+#    - ReadWriteMany
+#  size: 10Gi
+  existingClaim: nfs-pvc
+  subPath: grafana
+
+grafana.ini:
+  server:
+    root_url: https://karis.axesor.es/grafana/
+    

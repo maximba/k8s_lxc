@@ -31,8 +31,13 @@ master:
 agent:
   enabled: true
 persistence:
-  size: 100Gi
-  existingClaim: jenkins
+#  storageClass: jenkins-storage
+#  accessMode: ReadWriteMany
+#  size: 10Gi
+  existingClaim: nfs-pvc
+  subPath: jenkins
+  
+#  existingClaim: jenkins-storage
 networkPolicy:
   ApiVersion: networking.k8s.io/v1
 rbac:

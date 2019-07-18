@@ -1,0 +1,42 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: nfs-server-pod
+  labels:
+    role: nfs
+spec:
+  containers:
+    - name: nfs-server-container
+      image: cpuguy83/nfs-server
+      securityContext:
+        privileged: true
+      args:
+        - /exports
+      volumeMounts:
+        - name: exports
+          mountPath: /exports
+  volumes:
+    - name: exports
+      emptyDir: {}
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nfs-service
+  namespace: default
+spec:
+  ports:
+  - name: tcp-2049
+    protocol: TCP
+    port: 2049
+    targetPort: 2049
+  - name: udp-111
+    protocol: UDP
+    port: 111
+    targetPort: 111
+  selector:
+    role: nfs
+  sessionAffinity: None
+  clusterIP: 10.96.0.2
+
