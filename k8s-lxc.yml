@@ -1,6 +1,11 @@
 - hosts: localhost
   connection: local
   tasks:
+    - name: Fix host kernel modules
+      lineinfile:
+        line: "overlay"
+        dest: "/etc/modules"
+      
     - name: Creating LXD containers
       loop: "{{ groups['k8s_lxc'] }}"
       lxd_container:
@@ -23,6 +28,8 @@
         profiles: ["default"]
         wait_for_ipv4_addresses: true
         timeout: 600
+      tags:
+        - lxc
 
 - hosts: k8s_lxc
   gather_facts: yes
@@ -247,11 +254,11 @@
         - skip_ansible_lint
 
     - name: Deploy Kubernetes Dashboard
-      shell: kubectl apply -f deploy/dashboard.yml
+      shell: kubectl apply -f deploy/dashboard.yaml
       tags:
         - skip_ansible_lint
 
     - name: Grant full admin privileges to Dashboard Service Account
-      shell: kubectl apply -f deploy/authentication.yml
+      shell: kubectl apply -f deploy/authentication.yaml
       tags:
         - skip_ansible_lint

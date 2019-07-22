@@ -1,6 +1,4 @@
 - hosts: localhost
-
-  connection: local
   tasks:
     - name: Creating LXD container
       lxd_container:
@@ -36,9 +34,6 @@
       with_items: # launch LXD instance 
         - bastion
 
-
-- hosts: localhost
-  tasks:
     - name: Copy k8s admin.conf to localhost
       shell: lxc file pull k8s-master/etc/kubernetes/admin.conf /tmp/config
       tags:

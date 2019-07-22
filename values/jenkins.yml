@@ -1,12 +1,24 @@
 master:
   installPlugins:
-    - kubernetes:1.12.6
-    - workflow-job:2.24
-    - workflow-aggregator:2.5
-    - credentials-binding:1.16
-    - git:3.9.1
-    - google-oauth-plugin:0.6
+    - kubernetes:1.2
+    - workflow-job:2.33
+    - workflow-aggregator:2.6
+    - credentials-binding:1.19
+    - git:3.10.1
+    - google-oauth-plugin:0.8
     - google-source-plugin:0.3
+# Below added for Azure DevOps Compliant
+    - blueocean:1.17.0
+    - matrix-auth-plugin:2.4.2
+    - azure-credentials:1.6.1
+    - azure-ad:1.0.0
+    - azure-vm-agents:1.1.1
+    - azure-container-agents:1.0.0
+    - kubernetes-cd:1.0.0
+    - azure-acs:0.2.4
+    - azure-function:0.3.0
+    - azure-app-service:1.0.0
+    
   resources:
     cpu: "1"
     memory: "3500Mi"
@@ -27,7 +39,8 @@ master:
     path: /jenkins
   adminUser: admin
   adminPassword: secret
-  
+
+    
 agent:
   enabled: true
 persistence:
@@ -43,4 +56,4 @@ networkPolicy:
 rbac:
   create: true
   serviceAccount:
-    name: cd-jenkins
+    name: cd-jenkins    
