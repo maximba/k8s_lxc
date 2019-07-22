@@ -52,8 +52,13 @@
       tags:
         - skip_ansible_lint
 
+- hosts: bastion
+  become: yes
+  become_user: ubuntu
+
   tasks:
     - name: Install Firefox and its dependecies
+      become_user: root
       apt: 
         name: "{{ packages }}"
         state: present
@@ -67,10 +72,12 @@
         - etcd-client
 
     - name: Install kubectl
+      become_user: root
       shell: snap install kubectl --classic
 
 
     - name: Install kubeadm
+      become_user: root
       shell: snap install kubeadm --classic
       
     - name: Set authorized keys taken from github
@@ -80,15 +87,12 @@
         key: https://github.com/maximba.keys
 
     - name: Got token to kubeconfig
-      become_user: ubuntu
       shell: kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}') | grep "^token:" | cut -d ":" -f2 | xargs -L1 echo > /home/ubuntu/.kube/token
       
     - name: Add Token to config to enable Dashboard
-      become_user: ubuntu    
       shell: 'grep -q "token:" /home/ubuntu/.kube/config  || echo "    token: $(cat /home/ubuntu/.kube/token)" >> /home/ubuntu/.kube/config'
       
     - name: Create kubeconfig symlink 
-      become_user: ubuntu
       file:
         src: ~/.kube/config
         dest: ~/kubeconfig
@@ -97,19 +101,18 @@
         state: link      
 
     - name: Kill kubectl proxy
-      become_user: ubuntu
       shell: pkill kubectl || true 
       tags:
         - kubectl_proxy
       
     - name: Start Kubctl proxy
-      become_user: ubuntu    
       shell: "nohup kubectl proxy --address '0.0.0.0' &"
       tags:
         - kubectl_proxy      
 
     
     - name: Install helm
+      become_user: root
       shell: snap install helm --classic
       tags:
         - install_helm
