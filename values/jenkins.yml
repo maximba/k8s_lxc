@@ -1,6 +1,6 @@
 master:
   installPlugins:
-    - kubernetes:1.2
+    - kubernetes:1.17.2
     - workflow-job:2.33
     - workflow-aggregator:2.6
     - credentials-binding:1.19
@@ -8,18 +8,17 @@ master:
     - google-oauth-plugin:0.8
     - google-source-plugin:0.3
     - workflow-step-api:2.20
-# Below added for Azure DevOps Compliant
     - blueocean:1.17.0
-#    - matrix-auth:2.4.2
-#    - kubernetes-cd:1.0.0   
-#    - azure-commons:1.0.4 
-#    - azure-credentials:1.6.1
-#    - azure-ad:1.0.0
+    - matrix-auth:2.4.2
+    - kubernetes-cd:1.0.0
+    - azure-credentials:1.6.1
+    - azure-ad:1.0.0
 #    - azure-vm-agents:1.1.1
 #    - azure-container-agents:1.0.4
 #    - azure-acs:0.2.4
 #    - azure-app-service:1.0.0
-    
+
+  overwritePlugins: true
   resources:
     cpu: "1"
     memory: "3500Mi"
