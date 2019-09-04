@@ -21,21 +21,21 @@ master:
   overwritePlugins: true
   resources:
     cpu: "1"
-    memory: "3500Mi"
-  javaopts: "-Xms3500m -Xmx3500m"
+    memory: "2500Mi"
+  javaopts: "-Xms2500m -Xmx2500m"
   jenkinsUriPrefix: "/jenkins"
   serviceType: ClusterIP
   ingress:
-    hostName: "karis.axesor.es"
+    hostName: "karis.bxsoft.com"
     enabled: true
     annotations:
-      kubernetes.io/ingress.class: "nginx"
-      kubernetes.io/tls-acme: 'true'
-      nginx.ingress.kubernetes.io/rewrite-target: "/jenkins"
+      kubernetes.io/ingress.class: "traefik"
+#      kubernetes.io/tls-acme: 'true'
+#      nginx.ingress.kubernetes.io/rewrite-target: "/jenkins"
     tls:
-      - secretName: axesorsecret-tls
+      - secretName: traefik-ui-tls-cert
         hosts:
-          - karis.axesor.es
+          - karis.bxsoft.com
     path: /jenkins
   adminUser: admin
   adminPassword: secret
