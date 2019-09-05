@@ -21,39 +21,47 @@ master:
   overwritePlugins: true
   resources:
     cpu: "1"
-    memory: "2500Mi"
-  javaopts: "-Xms2500m -Xmx2500m"
+    memory: "3500Mi"
+  javaOpts: "-Xms3500m -Xmx3500m"
+#  jenkinsUrl: "https://karis.bxsoft.com"
   jenkinsUriPrefix: "/jenkins"
+  runAsUser: 1000
   serviceType: ClusterIP
   ingress:
     hostName: "karis.bxsoft.com"
     enabled: true
     annotations:
       kubernetes.io/ingress.class: "traefik"
-#      kubernetes.io/tls-acme: 'true'
-#      nginx.ingress.kubernetes.io/rewrite-target: "/jenkins"
-    tls:
-      - secretName: traefik-ui-tls-cert
-        hosts:
-          - karis.bxsoft.com
+      traefik.ingress.kubernetes.io/ssl-redirect: "true"
     path: /jenkins
+    tls:
+      - secretName: traefik-secret-tls
+  useSecurity: true
+  securityRealm: |-
+    <securityRealm class="hudson.security.HudsonPrivateSecurityRealm">
+      <disableSignup>true</disableSignup>
+      <enableCaptcha>false</enableCaptcha>
+    </securityRealm>
+    
+  # Allows to configure different AuthorizationStrategy using Jenkins XML
+  authorizationStrategy: |-
+     <authorizationStrategy class="hudson.security.LegacyAuthorizationStrategy">
+       <denyAnonymousReadAccess>false</denyAnonymousReadAccess>
+     </authorizationStrategy>  
   adminUser: admin
   adminPassword: secret
-
-    
+  csrf:
+    defaultCrumbIssuer:
+      enabled: false    
 agent:
   enabled: true
+
 persistence:
-#  storageClass: jenkins-storage
-#  accessMode: ReadWriteMany
-#  size: 10Gi
   existingClaim: nfs-pvc
   subPath: jenkins
-  
-#  existingClaim: jenkins-storage
-networkPolicy:
-  ApiVersion: networking.k8s.io/v1
+
 rbac:
   create: true
   serviceAccount:
-    name: cd-jenkins    
+    name: cd-jenkins
+    

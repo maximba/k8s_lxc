@@ -5,10 +5,10 @@ metadata:
   name: traefik-ingress-controller-dashboard-ingress
   annotations:
     kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/frontend-entry-points: http,https
-    traefik.ingress.kubernetes.io/redirect-entry-point: https
-    traefik.ingress.kubernetes.io/redirect-permanent: "true"
-    traefik.frontend.rule: PathPrefixStrip
+    ingress.kubernetes.io/ssl-redirect: "true"
+#    traefik.ingress.kubernetes.io/frontend-entry-points: http,https
+#    traefik.ingress.kubernetes.io/redirect-entry-point: https
+#    traefik.ingress.kubernetes.io/redirect-permanent: "true"
 spec:
   rules:
   - host: karis.bxsoft.com
@@ -18,3 +18,5 @@ spec:
         backend:
           serviceName: traefik-ingress-controller-dashboard-service
           servicePort: 8080
+  tls:
+    - secretName: traefik-secret-tls
