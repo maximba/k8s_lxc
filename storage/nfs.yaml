@@ -14,12 +14,12 @@ metadata:
   name: nfs-pv
 spec:
   capacity:
-    storage: 200Gi
+    storage: 10Gi
   accessModes:
   - ReadWriteMany
   nfs:
     path: /exports
-    server: karis.axesor.es
+    server: 10.0.0.114
   persistentVolumeReclaimPolicy: Retain
   storageClassName: nfs-storage
 
@@ -35,4 +35,4 @@ spec:
   storageClassName: nfs-storage
   resources:
     requests:
-      storage: 200Gi
+      storage: 10Gi

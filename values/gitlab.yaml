@@ -1,0 +1,11 @@
+#image: gitlab/gitlab-ce:12.2.4-ce.0
+externalUrl: https://karis.bxsoft.com
+
+ingress:
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/ssl-redirect: true
+  enabled: true  
+  tls:
+    - secretName: traefik-secret-tls
+  url: https://karis.bxsoft.com/gitlab    
