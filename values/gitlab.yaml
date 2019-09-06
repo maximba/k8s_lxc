@@ -1,11 +1,38 @@
-#image: gitlab/gitlab-ce:12.2.4-ce.0
-externalUrl: https://karis.bxsoft.com
-
-ingress:
-  annotations:
-    kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/ssl-redirect: true
-  enabled: true  
-  tls:
+nginx-ingress.enabled: false
+global:
+  edition: ce
+  hosts:
+    domain: karis.bxsoft.com
+    
+  ingress:
+    enabled: true
+    configureCertmanager: true
+    annotations:
+      kubernetes.io/ingress.class: "traefik"
+      traefik.ingress.kubernetes.io/ssl-redirect: "true"
+    tls:
     - secretName: traefik-secret-tls
-  url: https://karis.bxsoft.com/gitlab    
+      hosts:
+        - karis.bxsoft.com
+
+persistence:
+  gitlabEtc:
+    enabled: false
+ 
+  gitlabData:
+    enabled: false
+    
+postgresql:
+  persistence: 
+    existingClaim: nfs-pvc
+    subPath: postgresql
+    
+redis:
+  persistence:
+    existingClaim: nfs-pvc
+  master:
+    persistence:
+      path: /data
+      subPath: redis
+      
+              
