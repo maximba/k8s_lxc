@@ -36,23 +36,23 @@ master:
     path: /jenkins
     tls:
       - secretName: traefik-secret-tls
-  useSecurity: true
-  securityRealm: |-
-    <securityRealm class="hudson.security.HudsonPrivateSecurityRealm">
-      <disableSignup>true</disableSignup>
-      <enableCaptcha>false</enableCaptcha>
-    </securityRealm>
+#  useSecurity: true
+#  securityRealm: |-
+#    <securityRealm class="hudson.security.HudsonPrivateSecurityRealm">
+#      <disableSignup>true</disableSignup>
+#      <enableCaptcha>false</enableCaptcha>
+#    </securityRealm>
     
   # Allows to configure different AuthorizationStrategy using Jenkins XML
-  authorizationStrategy: |-
-     <authorizationStrategy class="hudson.security.LegacyAuthorizationStrategy">
-       <denyAnonymousReadAccess>false</denyAnonymousReadAccess>
-     </authorizationStrategy>  
+#  authorizationStrategy: |-
+#     <authorizationStrategy class="hudson.security.LegacyAuthorizationStrategy">
+#       <denyAnonymousReadAccess>false</denyAnonymousReadAccess>
+#     </authorizationStrategy>  
   adminUser: admin
   adminPassword: secret
-  csrf:
-    defaultCrumbIssuer:
-      enabled: false    
+#  csrf:
+#    defaultCrumbIssuer:
+#      enabled: false    
 agent:
   enabled: true
 

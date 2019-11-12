@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/ssl-redirect: "true"
+  labels:
+    app: gitlab-gitlab-ce
+    chart: gitlab-ce-0.2.2
+    heritage: Tiller
+    release: gitlab
+  name: gitlab-gitlab-ce
+  namespace: default
+spec:
+  rules:
+  - host: karis.bxsoft.com
+    http:
+      paths:
+      - backend:
+          serviceName: gitlab-gitlab-ce
+          servicePort: 80
+        path: /gitlab
+  tls:
+  -  secretName: traefik-secret-tls
+status:
+  loadBalancer:
+    ingress:
+    - hostname: a64a6a69c76e042d4b060b3758bd83e6-543775674.eu-central-1.elb.amazonaws.com
