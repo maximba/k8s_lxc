@@ -17,7 +17,8 @@ master:
 #    - azure-container-agents:1.0.4
 #    - azure-acs:0.2.4
 #    - azure-app-service:1.0.0
-
+    - generic-webhook-trigger: 1.65
+    
   overwritePlugins: true
   resources:
     cpu: "1"
