@@ -1,8 +1,0 @@
-Installed Helm version v2.14.3
-Installed Tiller version v2.14.3
-Helm and Tiller are the same version!
-Starting Tiller...
-Tiller namespace: kube-system
-Running: helm get values gitlab
-
-Stopping Tiller...
