@@ -26,12 +26,12 @@ master:
     memory: "3500Mi"
   javaOpts: "-Xms3500m -Xmx3500m"
   jenkinsUrlProtocol: "https"
-  jenkinsUrl: "https://jenkins.gitlab.bxsoft.com/"
+  jenkinsUrl: "https://jenkins.gitlab.axesor.com/"
   jenkinsUriPrefix: ""
   runAsUser: 1000
   serviceType: ClusterIP
   ingress:
-    hostName: "jenkins.gitlab.bxsoft.com"
+    hostName: "jenkins.gitlab.axesor.com"
     enabled: true
     annotations:
       kubernetes.io/tls-acme: "true"
